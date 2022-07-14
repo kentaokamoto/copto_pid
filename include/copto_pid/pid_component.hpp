@@ -43,6 +43,7 @@ extern "C" {
 #include <rclcpp/rclcpp.hpp>
 
 #include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
+#include "sensor_msgs/msg/joy.hpp"
 
 namespace copto_pid
 {
@@ -51,12 +52,35 @@ class PIDComponent : public rclcpp::Node
 public:
   COPTO_PID_PID_COMPONENT_PUBLIC
   explicit PIDComponent(const rclcpp::NodeOptions & options);
+  double roll_=0;
+  double pitch_=0;
+  double yaw_=0;
+  double MAX_THROTT = 1000;
+  double MAX_YAWRATE = 5*3.14/180; //rad/s
+  double MAX_ROLL = 30*3.14/180;// rad
+  double MAX_PITCH = 30*3.14/180;// rad
+  double yaw_old = 0.0;
+  double yawrate_;
+
+  double ctl_pitch, ctl_roll, ctl_thrott, ctl_yawrate;
 
 private:
-  void IMUtopic_callback(const sensor_msgs::msg::Imu::SharedPtr msg);
-  rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr IMUsubscription_;
-  rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr Posepublisher_;
+  void POSEtopic_callback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg);
+  void JOYtopic_callback(const sensor_msgs::msg::Imu::SharedPtr msg);
+  rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr POSEsubscription_;
+  rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr JOYsubscription_;
+  
   rclcpp::TimerBase::SharedPtr timer_;
+  double dt = 0.01;
+
+  double Kp_t = 1; double Kd_t = 1;
+
+  double Kp_y = 1; double Kd_y = 1;
+
+  double Kp_r = 1; double Kd_r = 1;
+
+  double Kp_p = 1; double Kd_p = 1;
+
 };
 }  // namespace copto_pid
 
