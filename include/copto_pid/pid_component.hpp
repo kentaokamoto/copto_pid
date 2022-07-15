@@ -44,6 +44,7 @@ extern "C" {
 
 #include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
 #include "sensor_msgs/msg/joy.hpp"
+#include "copto_msgs/msg/four_values.hpp"
 
 namespace copto_pid
 {
@@ -62,19 +63,23 @@ public:
   double yaw_old = 0.0;
   double yawrate_;
 
+  double e_pitch_old; 
+  double e_roll_old; 
+  double e_yawrate_old;
+
   double ctl_pitch, ctl_roll, ctl_thrott, ctl_yawrate;
 
 private:
   void POSEtopic_callback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg);
-  void JOYtopic_callback(const sensor_msgs::msg::Imu::SharedPtr msg);
+  void JOYtopic_callback(const sensor_msgs::msg::Joy::SharedPtr msg);
+  void update();
   rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr POSEsubscription_;
   rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr JOYsubscription_;
+  rclcpp::Publisher<copto_msgs::msg::FourValues>::SharedPtr CTLpublisher_;
   
   rclcpp::TimerBase::SharedPtr timer_;
   double dt = 0.01;
-
-  double Kp_t = 1; double Kd_t = 1;
-
+  //pid gain
   double Kp_y = 1; double Kd_y = 1;
 
   double Kp_r = 1; double Kd_r = 1;

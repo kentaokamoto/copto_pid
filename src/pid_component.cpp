@@ -6,6 +6,8 @@
 
 #include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
 #include "sensor_msgs/msg/joy.hpp"
+#include "copto_msgs/msg/four_values.hpp"
+
 
 using namespace  std::chrono_literals;
 namespace copto_pid
@@ -18,7 +20,7 @@ PIDComponent::PIDComponent(const rclcpp::NodeOptions & options) : Node("copto_pi
   JOYsubscription_ = this->create_subscription<sensor_msgs::msg::Joy>(
     "/joy", 10, std::bind(&PIDComponent::JOYtopic_callback, this, std::placeholders::_1));
 
-  Posepublisher_ = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("/copto/pose", 1);
+  CTLpublisher_ = this->create_publisher<copto_msgs::msg::FourValues>("/copto/ctl_val", 1);
 
   timer_ = this->create_wall_timer(10ms, std::bind(&PIDComponent::update, this));
 }
@@ -26,7 +28,7 @@ PIDComponent::PIDComponent(const rclcpp::NodeOptions & options) : Node("copto_pi
 void PIDComponent::POSEtopic_callback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg)
 {
   tf2::Quaternion quat;  
-  quat = mag-> pose.pose.orientation;
+  quat = msg-> pose.pose.orientation;
   tf::Matrix3x3(quat).getRPY(roll_, pitch_, yaw_);
   yawrate_ = yaw_old - yaw_;
   yaw_old = yaw_;
@@ -34,29 +36,29 @@ void PIDComponent::POSEtopic_callback(const geometry_msgs::msg::PoseWithCovarian
 
 void PIDComponent::JOYtopic_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
 {
-  ctl_thrott = msg->axis[1] * MAX_THROTT;
-  ctl_yawrate = msg->axis[0] * MAX_YAWRATE;
-  ctl_pitch = msg->axis[5] * MAX_PITCH;
-  ctl_roll = msg->axis[6] * MAX_ROLL;
+  ctl_thrott = msg->axes[3] * MAX_THROTT;
+  ctl_yawrate = msg->axes[0] * MAX_YAWRATE;
+  ctl_pitch = msg->axes[5] * MAX_PITCH;
+  ctl_roll = msg->axes[6] * MAX_ROLL;
 }
 
 void PIDComponent::update()
 {
-  double e_pitch_new, e_roll_new, e_thrott_new, e_yawrate_new;
-  double u_pitch, u_roll, u_thrott, u_yawrate;
+  double e_pitch_new, e_roll_new, e_yawrate_new;
 
-  // e_thrott_new = thrott_-ctl_thrott;
-  e_thrott_new = 0;
+  // culc error
   e_yawrate_new = yawrate_-ctl_yawrate;
   e_pitch_new = pitch_-ctl_pitch;
   e_roll_new = roll_-ctl_roll;
 
-  u_thrott = Kp_t*e_thrott_new + Kd_t*(e_thrott_old-e_thrott_new)/dt;
-  u_yawrate = Kp_y*e_yawrate_new + Kd_y*(e_yawrate_old-e_yawrate_new)/dt;
-  u_roll = Kp_r*e_roll_new + Kd_r*(e_roll_old-e_roll_new)/dt;
-  u_pitch = Kp_p*e_pitch_new + Kd_p*(e_pitch_old-e_pitch_new)/dt;
+  copto_msgs::msg::FourValues ctl_val;
+  ctl_val.u = ctl_thrott;
+  // pose pd control
+  ctl_val.yaw = Kp_y*e_yawrate_new + Kd_y*(e_yawrate_old-e_yawrate_new)/dt;
+  ctl_val.roll = Kp_r*e_roll_new + Kd_r*(e_roll_old-e_roll_new)/dt;
+  ctl_val.pitch = Kp_p*e_pitch_new + Kd_p*(e_pitch_old-e_pitch_new)/dt;
 
-  e_thrott_old = e_thrott_new;
+  CTLpublisher_->publish(ctl_val);
   e_yawrate_old = e_yawrate_new;
   e_pitch_old = e_pitch_new;
   e_roll_old = e_roll_new;

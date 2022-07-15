@@ -1,6 +1,6 @@
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
-#include <copto_quat/quat_component.hpp>
+#include <copto_pid/pid_component.hpp>
 
 int main(int argc, char * argv[])
 {

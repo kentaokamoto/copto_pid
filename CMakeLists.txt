@@ -17,10 +17,16 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_auto REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
+find_package(tf2_ros REQUIRED)
 
 find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(copto_msgs REQUIRED)
+
+include_directories(include)
 
 add_library(pid_component SHARED src/pid_component.cpp)
 
@@ -29,25 +35,28 @@ target_compile_definitions(
   PRIVATE "COPTO_PID_PID_COMPONENT_BUILDING_DLL"
 )
 
-ament_target_dependencies(
+ament_target_dependencies(pid_component
   rclcpp
   rclcpp_components
   geometry_msgs
+  sensor_msgs
+  copto_msgs
+  tf2_ros
 )
 
-ament_components_registar_nodes(
+rclcpp_components_register_nodes(
   pid_component "copto_pid::PIDComponent"
 )
 
-add_exectable(copto_pid_node src/copto_pid_node)
+add_executable(copto_pid_node src/copto_pid_node.cpp)
 
-target_link_libraries(copto_quat_node quat_component)
+target_link_libraries(copto_pid_node pid_component)
 
-install(TARGET copto_pid_node
+install(TARGETS copto_pid_node
   DESTINATION lib/${PROJECT_NAME}
   )
 
-install(TARGET pid_component
+install(TARGETS pid_component
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin

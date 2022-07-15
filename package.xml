@@ -10,16 +10,25 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <build_depend>geometry_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>copto_msgs</build_depend>
   <build_depend>rclcpp</build_depend>
   <build_depend>rclcpp_components</build_depend>
+  <build_depend>tf2_ros</build_depend>
   
   <build_export_depend>geometry_msgs</build_export_depend>
+  <build_export_depend>sensor_msgs</build_export_depend>
+  <build_export_depend>copto_msgs</build_export_depend>
   <build_export_depend>rclcpp</build_export_depend>
   <build_export_depend>rclcpp_components</build_export_depend>
+  <build_export_depend>tf2_ros</build_export_depend>
 
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>copto_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>rclcpp</exec_depend>
   <exec_depend>rclcpp_components</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
