@@ -2,11 +2,11 @@
 #include <chrono>
 #include <copto_pid/pid_component.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
-#include <tf2/LinearMath/Quaternion.h>
 
 #include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
+#include "geometry_msgs/msg/quaternion.hpp"
 #include "sensor_msgs/msg/joy.hpp"
-#include "copto_msgs/msg/four_values.hpp"
+#include "std_msgs/msg/float32_multi_array.hpp"
 
 
 using namespace  std::chrono_literals;
@@ -20,16 +20,23 @@ PIDComponent::PIDComponent(const rclcpp::NodeOptions & options) : Node("copto_pi
   JOYsubscription_ = this->create_subscription<sensor_msgs::msg::Joy>(
     "/joy", 10, std::bind(&PIDComponent::JOYtopic_callback, this, std::placeholders::_1));
 
-  CTLpublisher_ = this->create_publisher<copto_msgs::msg::FourValues>("/copto/ctl_val", 1);
+  CTLpublisher_ = this->create_publisher<std_msgs::msg::Float32MultiArray>("/copto/ctl_val", 1);
 
   timer_ = this->create_wall_timer(10ms, std::bind(&PIDComponent::update, this));
 }
 
+void PIDComponent::getEulerRPY(const geometry_msgs::msg::Quaternion q, double &roll, double &pitch, double &yaw)
+{
+  yaw = atan2((2*q.x*q.y+2*q.w*q.z),(2*q.w-1+2*pow(q.x,2)));
+  roll = atan2((2*q.y*q.z+2*q.w*q.x),(2*q.w-1+2*pow(q.z,2)));
+  pitch = asin(2*q.w*q.y-2*q.x*q.z);
+}
+
 void PIDComponent::POSEtopic_callback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg)
 {
-  tf2::Quaternion quat;  
+  geometry_msgs::msg::Quaternion quat;  
   quat = msg-> pose.pose.orientation;
-  tf::Matrix3x3(quat).getRPY(roll_, pitch_, yaw_);
+  getEulerRPY(quat, yaw_, pitch_, roll_);
   yawrate_ = yaw_old - yaw_;
   yaw_old = yaw_;
 }
@@ -51,12 +58,12 @@ void PIDComponent::update()
   e_pitch_new = pitch_-ctl_pitch;
   e_roll_new = roll_-ctl_roll;
 
-  copto_msgs::msg::FourValues ctl_val;
-  ctl_val.u = ctl_thrott;
+  std_msgs::msg::Float32MultiArray ctl_val;
+  ctl_val.data[0] = ctl_thrott;
   // pose pd control
-  ctl_val.yaw = Kp_y*e_yawrate_new + Kd_y*(e_yawrate_old-e_yawrate_new)/dt;
-  ctl_val.roll = Kp_r*e_roll_new + Kd_r*(e_roll_old-e_roll_new)/dt;
-  ctl_val.pitch = Kp_p*e_pitch_new + Kd_p*(e_pitch_old-e_pitch_new)/dt;
+  ctl_val.data[1] = Kp_y*e_yawrate_new + Kd_y*(e_yawrate_old-e_yawrate_new)/dt;
+  ctl_val.data[2] = Kp_r*e_roll_new + Kd_r*(e_roll_old-e_roll_new)/dt;
+  ctl_val.data[3] = Kp_p*e_pitch_new + Kd_p*(e_pitch_old-e_pitch_new)/dt;
 
   CTLpublisher_->publish(ctl_val);
   e_yawrate_old = e_yawrate_new;
