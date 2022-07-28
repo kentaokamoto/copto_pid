@@ -22,7 +22,7 @@ PIDComponent::PIDComponent(const rclcpp::NodeOptions & options) : Node("copto_pi
 
   CTLpublisher_ = this->create_publisher<std_msgs::msg::Float32MultiArray>("/copto/ctl_val", 1);
 
-  timer_ = this->create_wall_timer(1ms, std::bind(&PIDComponent::update, this));
+  timer_ = this->create_wall_timer(10ms, std::bind(&PIDComponent::update, this));
 }
 
 void PIDComponent::getEulerRPY(const geometry_msgs::msg::Quaternion q, double &roll, double &pitch, double &yaw)
