@@ -58,12 +58,13 @@ void PIDComponent::update()
   e_pitch_new = pitch_-ctl_pitch;
   e_roll_new = roll_-ctl_roll;
 
+  // roll pitch yaw thrust
   std_msgs::msg::Float32MultiArray ctl_val;
-  ctl_val.data[0] = ctl_thrott;
+  ctl_val.data[3] = ctl_thrott;
   // pose pd control
-  ctl_val.data[1] = Kp_y*e_yawrate_new + Kd_y*(e_yawrate_old-e_yawrate_new)/dt;
-  ctl_val.data[2] = Kp_r*e_roll_new + Kd_r*(e_roll_old-e_roll_new)/dt;
-  ctl_val.data[3] = Kp_p*e_pitch_new + Kd_p*(e_pitch_old-e_pitch_new)/dt;
+  ctl_val.data[2] = Kp_y*e_yawrate_new + Kd_y*(e_yawrate_old-e_yawrate_new)/dt;
+  ctl_val.data[0] = Kp_r*e_roll_new + Kd_r*(e_roll_old-e_roll_new)/dt;
+  ctl_val.data[1] = Kp_p*e_pitch_new + Kd_p*(e_pitch_old-e_pitch_new)/dt;
 
   CTLpublisher_->publish(ctl_val);
   e_yawrate_old = e_yawrate_new;
