@@ -22,7 +22,7 @@ PIDComponent::PIDComponent(const rclcpp::NodeOptions & options) : Node("copto_pi
 
   CTLpublisher_ = this->create_publisher<std_msgs::msg::Float32MultiArray>("/copto/ctl_val", 1);
 
-  timer_ = this->create_wall_timer(10ms, std::bind(&PIDComponent::update, this));
+  timer_ = this->create_wall_timer(1ms, std::bind(&PIDComponent::update, this));
 }
 
 void PIDComponent::getEulerRPY(const geometry_msgs::msg::Quaternion q, double &roll, double &pitch, double &yaw)
@@ -36,14 +36,14 @@ void PIDComponent::POSEtopic_callback(const geometry_msgs::msg::PoseWithCovarian
 {
   geometry_msgs::msg::Quaternion quat;  
   quat = msg-> pose.pose.orientation;
-  getEulerRPY(quat, yaw_, pitch_, roll_);
+  getEulerRPY(quat, roll_, pitch_, yaw_);
   yawrate_ = yaw_old - yaw_;
   yaw_old = yaw_;
 }
 
 void PIDComponent::JOYtopic_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
 {
-  ctl_thrott = msg->axes[3] * MAX_THROTT;
+  ctl_thrott = -(msg->axes[3]-1)/2 * MAX_THROTT;
   ctl_yawrate = msg->axes[0] * MAX_YAWRATE;
   ctl_pitch = msg->axes[5] * MAX_PITCH;
   ctl_roll = msg->axes[6] * MAX_ROLL;
