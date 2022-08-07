@@ -60,6 +60,7 @@ void PIDComponent::update()
 
   // roll pitch yaw thrust
   std_msgs::msg::Float32MultiArray ctl_val;
+  ctl_val.data.resize(4);
   ctl_val.data[3] = ctl_thrott;
   // pose pd control
   ctl_val.data[2] = Kp_y*e_yawrate_new + Kd_y*(e_yawrate_old-e_yawrate_new)/dt;
