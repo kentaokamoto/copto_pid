@@ -60,6 +60,11 @@ install(TARGETS pid_component
   RUNTIME DESTINATION bin
   )
 
+install(
+  DIRECTORY "include/"
+  DESTINATION include
+)
+
 ament_export_libraries(pid_component)
 
 ament_export_include_directories(include)
