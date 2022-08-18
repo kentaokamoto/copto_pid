@@ -37,6 +37,7 @@ void PIDComponent::POSEtopic_callback(const geometry_msgs::msg::PoseWithCovarian
   geometry_msgs::msg::Quaternion quat;  
   quat = msg-> pose.pose.orientation;
   getEulerRPY(quat, roll_, pitch_, yaw_);
+  std::cout << pitch_*180/2.14 << std::endl;
   yawrate_ = yaw_old - yaw_;
   yaw_old = yaw_;
 }

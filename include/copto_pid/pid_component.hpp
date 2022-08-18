@@ -56,7 +56,7 @@ public:
   double roll_=0;
   double pitch_=0;
   double yaw_=0;
-  double MAX_THROTT = 1000;
+  double MAX_THROTT = 2000;
   double MAX_YAWRATE = 5*3.14/180; //rad/s
   double MAX_ROLL = 30*3.14/180;// rad
   double MAX_PITCH = 30*3.14/180;// rad
@@ -81,11 +81,11 @@ private:
   rclcpp::TimerBase::SharedPtr timer_;
   double dt = 0.01;
   //pid gain
-  double Kp_y = 0.01; double Kd_y = 0.01;
+  double Kp_y = 0.001; double Kd_y = 0.1;
 
-  double Kp_r = 0.01; double Kd_r = 0.01;
+  double Kp_r = 0.001; double Kd_r = 0.1;
 
-  double Kp_p = 0.01; double Kd_p = 0.01;
+  double Kp_p = 0.001; double Kd_p = 0.1;
 
 };
 }  // namespace copto_pid
