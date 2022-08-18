@@ -79,7 +79,7 @@ private:
   rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr CTLpublisher_;
   
   rclcpp::TimerBase::SharedPtr timer_;
-  double dt = 0.001;
+  double dt = 0.01;
   //pid gain
   double Kp_y = 0.01; double Kd_y = 0.01;
 
