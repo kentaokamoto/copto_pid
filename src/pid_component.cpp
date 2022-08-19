@@ -37,14 +37,14 @@ void PIDComponent::POSEtopic_callback(const geometry_msgs::msg::PoseWithCovarian
   geometry_msgs::msg::Quaternion quat;  
   quat = msg-> pose.pose.orientation;
   getEulerRPY(quat, roll_, pitch_, yaw_);
-  std::cout << pitch_*180/2.14 << std::endl;
+  // std::cout << pitch_*180/3.14 << std::endl;
   yawrate_ = yaw_old - yaw_;
   yaw_old = yaw_;
 }
 
 void PIDComponent::JOYtopic_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
 {
-  ctl_thrott = -(msg->axes[3]-1)/2 * MAX_THROTT;
+  ctl_thrott = -(msg->axes[3]-1)/2 * THROTT_RANGE + MIN_THROTT;
   ctl_yawrate = msg->axes[0] * MAX_YAWRATE;
   ctl_pitch = msg->axes[5] * MAX_PITCH;
   ctl_roll = msg->axes[6] * MAX_ROLL;
@@ -55,9 +55,9 @@ void PIDComponent::update()
   double e_pitch_new, e_roll_new, e_yawrate_new;
 
   // culc error
-  e_yawrate_new = yawrate_-ctl_yawrate;
-  e_pitch_new = pitch_-ctl_pitch;
-  e_roll_new = roll_-ctl_roll;
+  e_yawrate_new = ctl_yawrate-yawrate_;
+  e_pitch_new = ctl_pitch-pitch_;
+  e_roll_new = ctl_roll-roll_;
 
   // roll pitch yaw thrust
   std_msgs::msg::Float32MultiArray ctl_val;
@@ -67,6 +67,11 @@ void PIDComponent::update()
   ctl_val.data[2] = Kp_y*e_yawrate_new + Kd_y*(e_yawrate_old-e_yawrate_new)/dt;
   ctl_val.data[0] = Kp_r*e_roll_new + Kd_r*(e_roll_old-e_roll_new)/dt;
   ctl_val.data[1] = Kp_p*e_pitch_new + Kd_p*(e_pitch_old-e_pitch_new)/dt;
+  
+
+  // std::cout<<"roll:" << ctl_val.data[0] << std::endl;
+  // std::cout<<"pitch:" << ctl_val.data[1] << std::endl;
+  // std::cout<<"yaw:" << ctl_val.data[2] << std::endl;
 
   CTLpublisher_->publish(ctl_val);
   e_yawrate_old = e_yawrate_new;
